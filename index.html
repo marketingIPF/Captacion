@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <title>Captación · RK Palanca</title>
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Captación" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="app-header">
+  <img class="logo" src="assets/logo-white.png" alt="RK Palanca" />
+  <div>
+    <p class="title">Ficha de Captación</p>
+    <p class="subtitle">Inmueble</p>
+  </div>
+  <div class="status" id="saveStatus" title="Los datos se guardan automáticamente en este dispositivo">
+    <span class="dot"></span><span class="label">Guardado</span>
+  </div>
+</header>
+
+<div class="install-banner" id="installBanner">
+  <span>📱 Añade Captación a tu pantalla de inicio para usarla como app.</span>
+  <button id="installBtn">Instalar</button>
+</div>
+
+<main class="container">
+  <form id="captacionForm" novalidate>
+
+    <!-- ==========================================================
+         0. AGENTE + IDENTIFICACIÓN
+         ========================================================== -->
+    <section class="section open" data-section="0">
+      <header class="section-header">
+        <div class="section-num">0</div>
+        <span class="section-title">Agente e identificación</span>
+        <span class="section-meta" id="meta-0"></span>
+        <span class="section-chevron"></span>
+      </header>
+      <div class="section-body">
+
+        <div class="field">
+          <label class="field-label" for="agente">Agente captador <span class="required">*</span></label>
+          <select id="agente" name="agente" required>
+            <option value="">— Selecciona tu nombre —</option>
+          </select>
+        </div>
+
+        <div class="grid grid-3 keep">
+          <div class="field">
+            <label class="field-label" for="prospecto">Prospecto</label>
+            <input id="prospecto" name="prospecto" type="text" inputmode="numeric" placeholder="Nº prospecto" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="ref">Referencia</label>
+            <input id="ref" name="ref" type="text" placeholder="#01234" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="fecha">Fecha</label>
+            <input id="fecha" name="fecha" type="date" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:6px">
+          <label class="field-label">Operación <span class="required">*</span></label>
+          <div class="chip-group" role="radiogroup" id="operacion-group">
+            <button type="button" class="chip" data-name="operacion" data-value="Venta">Venta</button>
+            <button type="button" class="chip" data-name="operacion" data-value="Alquiler">Alquiler</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Tipo de inmueble <span class="required">*</span></label>
+          <div class="chip-group" role="radiogroup" id="tipo-group"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         1. PROPIETARIOS
+         ========================================================== -->
+    <section class="section" data-section="1">
+      <header class="section-header">
+        <div class="section-num">1</div>
+        <span class="section-title">Propietarios</span>
+        <span class="section-meta" id="meta-1"></span>
+        <span class="section-chevron"></span>
+      </header>
+      <div class="section-body">
+        <div id="propietariosList"></div>
+        <button type="button" class="btn-add" id="addPropietario">+ Añadir propietario</button>
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         2. UBICACIÓN Y DATOS LEGALES
+         ========================================================== -->
+    <section class="section" data-section="2">
+      <header class="section-header">
+        <div class="section-num">2</div>
+        <span class="section-title">Ubicación y datos legales</span>
+        <span class="section-meta" id="meta-2"></span>
+        <span class="section-chevron"></span>
+      </header>
+      <div class="section-body">
+
+        <div class="field">
+          <label class="field-label" for="direccion">Dirección (calle y número) <span class="required">*</span></label>
+          <input id="direccion" name="direccion" type="text" autocomplete="street-address" placeholder="Calle, número, planta, puerta" />
+        </div>
+
+        <div class="grid grid-3">
+          <div class="field">
+            <label class="field-label" for="numero">Número</label>
+            <input id="numero" name="numero" type="text" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="planta">Planta</label>
+            <input id="planta" name="planta" type="text" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="puerta">Puerta</label>
+            <input id="puerta" name="puerta" type="text" />
+          </div>
+        </div>
+
+        <div class="grid grid-3">
+          <div class="field full-width">
+            <label class="field-label" for="poblacion">Población <span class="required">*</span></label>
+            <input id="poblacion" name="poblacion" type="text" list="poblacionesList" autocomplete="address-level2" />
+            <datalist id="poblacionesList"></datalist>
+          </div>
+          <div class="field">
+            <label class="field-label" for="cp">Código postal</label>
+            <input id="cp" name="cp" type="text" inputmode="numeric" maxlength="5" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="municipio">Municipio</label>
+            <input id="municipio" name="municipio" type="text" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="provincia">Provincia</label>
+            <input id="provincia" name="provincia" type="text" value="Valencia" />
+          </div>
+        </div>
+
+        <div class="grid grid-2 keep">
+          <div class="field">
+            <span class="field-label">Clasificación del suelo</span>
+            <div class="chip-group" id="suelo-group">
+              <button type="button" class="chip" data-name="suelo" data-value="Urbano">Urbano</button>
+              <button type="button" class="chip" data-name="suelo" data-value="Rústico">Rústico</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Certificado energético</span>
+            <div class="chip-group" id="cee-group">
+              <button type="button" class="chip" data-name="cee" data-value="Hecho">Hecho</button>
+              <button type="button" class="chip" data-name="cee" data-value="Pendiente">Pendiente</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-2 keep">
+          <div class="field">
+            <span class="field-label">Autorización de venta firmada</span>
+            <div class="chip-group" id="autorizacion-group">
+              <button type="button" class="chip" data-name="autorizacion" data-value="Sí">Sí</button>
+              <button type="button" class="chip" data-name="autorizacion" data-value="No">No</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Documentación aportada</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="doc" value="DNI"><span class="box"></span>DNI</label>
+              <label class="check-item"><input type="checkbox" name="doc" value="IBI"><span class="box"></span>IBI</label>
+              <label class="check-item"><input type="checkbox" name="doc" value="CEE"><span class="box"></span>CEE</label>
+              <label class="check-item"><input type="checkbox" name="doc" value="Escritura"><span class="box"></span>Escritura</label>
+              <label class="check-item"><input type="checkbox" name="doc" value="Nota simple"><span class="box"></span>Nota simple</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="subblock" id="chaletBlock">
+          <p class="subblock-title">Solo chalets / unifamiliares</p>
+          <div class="grid grid-2 keep">
+            <div class="field">
+              <span class="field-label">Agua</span>
+              <div class="chip-group" id="agua-group">
+                <button type="button" class="chip" data-name="agua" data-value="Potable">Potable</button>
+                <button type="button" class="chip" data-name="agua" data-value="De pozo">De pozo</button>
+              </div>
+            </div>
+            <div class="field">
+              <span class="field-label">Acceso asfaltado</span>
+              <div class="chip-group" id="acceso-group">
+                <button type="button" class="chip" data-name="acceso" data-value="Sí">Sí</button>
+                <button type="button" class="chip" data-name="acceso" data-value="No">No</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         3. DATOS ECONÓMICOS
+         ========================================================== -->
+    <section class="section" data-section="3">
+      <header class="section-header">
+        <div class="section-num">3</div>
+        <span class="section-title">Datos económicos</span>
+        <span class="section-meta" id="meta-3"></span>
+        <span class="section-chevron"></span>
+      </header>
+      <div class="section-body">
+
+        <div class="grid grid-2 keep">
+          <div class="field">
+            <label class="field-label" for="precio">Precio solicitado</label>
+            <div class="input-suffix">
+              <input id="precio" name="precio" type="text" inputmode="numeric" />
+              <span class="suffix" id="precioSuffix">€</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="precio_minimo">Precio mínimo aceptable</label>
+            <div class="input-suffix">
+              <input id="precio_minimo" name="precio_minimo" type="text" inputmode="numeric" />
+              <span class="suffix">€</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-2 keep">
+          <div class="field">
+            <label class="field-label" for="comunidad">Gastos de comunidad</label>
+            <div class="input-suffix">
+              <input id="comunidad" name="comunidad" type="text" inputmode="numeric" />
+              <span class="suffix">€/mes</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="ibi">IBI</label>
+            <div class="input-suffix">
+              <input id="ibi" name="ibi" type="text" inputmode="numeric" />
+              <span class="suffix">€/año</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <p class="fieldset-title">Derrama de la comunidad</p>
+          <div class="grid grid-2 keep">
+            <div class="field">
+              <span class="field-label">Derrama aprobada</span>
+              <div class="chip-group" id="derrama-group">
+                <button type="button" class="chip" data-name="derrama" data-value="Sí">Sí</button>
+                <button type="button" class="chip" data-name="derrama" data-value="No">No</button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="derrama_importe">Importe</label>
+              <div class="input-suffix">
+                <input id="derrama_importe" name="derrama_importe" type="text" inputmode="numeric" />
+                <span class="suffix">€</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <p class="fieldset-title">VPO (Vivienda de Protección Oficial)</p>
+          <div class="grid grid-2 keep">
+            <div class="field">
+              <span class="field-label">Es VPO</span>
+              <div class="chip-group" id="vpo-group">
+                <button type="button" class="chip" data-name="vpo" data-value="Sí">Sí</button>
+                <button type="button" class="chip" data-name="vpo" data-value="No">No</button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="vpo_expediente">Nº de expediente</label>
+              <input id="vpo_expediente" name="vpo_expediente" type="text" />
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         4. DISTRIBUCIÓN Y SUPERFICIES
+         ========================================================== -->
+    <section class="section" data-section="4">
+      <header class="section-header">
+        <div class="section-num">4</div>
+        <span class="section-title">Distribución y superficies</span>
+        <span class="section-meta" id="meta-4"></span>
+        <span class="section-chevron"></span>
+      </header>
+      <div class="section-body">
+
+        <div class="grid grid-2 keep">
+          <div class="field">
+            <label class="field-label" for="m2_construidos">M² construidos</label>
+            <div class="input-suffix">
+              <input id="m2_construidos" name="m2_construidos" type="text" inputmode="numeric" />
+              <span class="suffix">m²</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="m2_utiles">M² útiles</label>
+            <div class="input-suffix">
+              <input id="m2_utiles" name="m2_utiles" type="text" inputmode="numeric" />
+              <span class="suffix">m²</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="m2_parcela">M² parcela</label>
+            <div class="input-suffix">
+              <input id="m2_parcela" name="m2_parcela" type="text" inputmode="numeric" />
+              <span class="suffix">m²</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="m2_terraza">M² terraza</label>
+            <div class="input-suffix">
+              <input id="m2_terraza" name="m2_terraza" type="text" inputmode="numeric" />
+              <span class="suffix">m²</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-2 keep">
+          <div class="field">
+            <label class="field-label" for="anyo">Año de construcción</label>
+            <input id="anyo" name="anyo" type="text" inputmode="numeric" maxlength="4" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="alturas">Alturas del edificio</label>
+            <input id="alturas" name="alturas" type="text" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="grid grid-3 keep">
+          <div class="field">
+            <label class="field-label" for="dormitorios">Dormitorios</label>
+            <input id="dormitorios" name="dormitorios" type="text" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="banos">Baños</label>
+            <input id="banos" name="banos" type="text" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="aseos">Aseos</label>
+            <input id="aseos" name="aseos" type="text" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="grid grid-2 keep">
+          <div class="field">
+            <label class="field-label" for="salon_m2">Salón (m²)</label>
+            <input id="salon_m2" name="salon_m2" type="text" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="cocina_m2">Cocina (m²)</label>
+            <input id="cocina_m2" name="cocina_m2" type="text" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Equipamiento adicional</span>
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" name="anexos" value="Armarios empotrados"><span class="box"></span>Armarios empotrados</label>
+            <label class="check-item"><input type="checkbox" name="anexos" value="Garaje"><span class="box"></span>Garaje</label>
+            <label class="check-item"><input type="checkbox" name="anexos" value="Trastero"><span class="box"></span>Trastero</label>
+            <label class="check-item"><input type="checkbox" name="anexos" value="Terraza"><span class="box"></span>Terraza</label>
+            <label class="check-item"><input type="checkbox" name="anexos" value="Balcón"><span class="box"></span>Balcón</label>
+            <label class="check-item"><input type="checkbox" name="anexos" value="Piscina"><span class="box"></span>Piscina</label>
+            <label class="check-item"><input type="checkbox" name="anexos" value="Jardín"><span class="box"></span>Jardín</label>
+          </div>
+        </div>
+
+        <div class="grid grid-3 keep">
+          <div class="field">
+            <label class="field-label" for="num_garajes">Nº garajes</label>
+            <input id="num_garajes" name="num_garajes" type="text" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="num_trasteros">Nº trasteros</label>
+            <input id="num_trasteros" name="num_trasteros" type="text" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="num_piscinas">Nº piscinas</label>
+            <input id="num_piscinas" name="num_piscinas" type="text" inputmode="numeric" />
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         5. CALIDADES Y EQUIPAMIENTO
+         ========================================================== -->
+    <section class="section" data-section="5">
+      <header class="section-header">
+        <div class="section-num">5</div>
+        <span class="section-title">Calidades y equipamiento</span>
+        <span class="section-meta" id="meta-5"></span>
+        <span class="section-chevron"></span>
+      </header>
+      <div class="section-body">
+
+        <div class="fieldset">
+          <p class="fieldset-title">Ventanas y carpintería</p>
+          <div class="field">
+            <span class="field-label">Material</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="ventanas_material" value="Aluminio"><span class="box"></span>Aluminio</label>
+              <label class="check-item"><input type="checkbox" name="ventanas_material" value="PVC"><span class="box"></span>PVC</label>
+              <label class="check-item"><input type="checkbox" name="ventanas_material" value="Madera"><span class="box"></span>Madera</label>
+              <label class="check-item"><input type="checkbox" name="ventanas_material" value="Climalit"><span class="box"></span>Climalit</label>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <span class="field-label">Tipo de apertura</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="ventanas_apertura" value="Correderas"><span class="box"></span>Correderas</label>
+              <label class="check-item"><input type="checkbox" name="ventanas_apertura" value="Abatibles"><span class="box"></span>Abatibles</label>
+              <label class="check-item"><input type="checkbox" name="ventanas_apertura" value="Oscilobatientes"><span class="box"></span>Oscilobatientes</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <p class="fieldset-title">Puertas y suelos</p>
+          <div class="field">
+            <span class="field-label">Puertas interiores</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="puertas" value="Macizas"><span class="box"></span>Macizas</label>
+              <label class="check-item"><input type="checkbox" name="puertas" value="Huecas"><span class="box"></span>Huecas</label>
+              <label class="check-item"><input type="checkbox" name="puertas" value="Lacadas"><span class="box"></span>Lacadas</label>
+              <label class="check-item"><input type="checkbox" name="puertas" value="Roble/Haya"><span class="box"></span>Roble/Haya</label>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <span class="field-label">Suelos</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="suelos" value="Tarima"><span class="box"></span>Tarima</label>
+              <label class="check-item"><input type="checkbox" name="suelos" value="Gres"><span class="box"></span>Gres</label>
+              <label class="check-item"><input type="checkbox" name="suelos" value="Terrazo"><span class="box"></span>Terrazo</label>
+              <label class="check-item"><input type="checkbox" name="suelos" value="Mármol"><span class="box"></span>Mármol</label>
+              <label class="check-item"><input type="checkbox" name="suelos" value="Porcelánico"><span class="box"></span>Porcelánico</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <p class="fieldset-title">Cocina</p>
+          <div class="field">
+            <span class="field-label">Tipo</span>
+            <div class="chip-group" id="cocina_tipo-group">
+              <button type="button" class="chip" data-name="cocina_tipo" data-value="Independiente">Independiente</button>
+              <button type="button" class="chip" data-name="cocina_tipo" data-value="Abierta/Office">Abierta / Office</button>
+              <button type="button" class="chip" data-name="cocina_tipo" data-value="Americana">Americana</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Fuegos</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="fuegos" value="Vitrocerámica"><span class="box"></span>Vitrocerámica</label>
+              <label class="check-item"><input type="checkbox" name="fuegos" value="Inducción"><span class="box"></span>Inducción</label>
+              <label class="check-item"><input type="checkbox" name="fuegos" value="Gas"><span class="box"></span>Gas</label>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <span class="field-label">Agua caliente</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="agua_caliente" value="Termo eléctrico"><span class="box"></span>Termo eléctrico</label>
+              <label class="check-item"><input type="checkbox" name="agua_caliente" value="Gas natural"><span class="box"></span>Gas natural</label>
+              <label class="check-item"><input type="checkbox" name="agua_caliente" value="Butano"><span class="box"></span>Butano</label>
+              <label class="check-item"><input type="checkbox" name="agua_caliente" value="Solar"><span class="box"></span>Solar</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <p class="fieldset-title">Climatización</p>
+          <div class="field">
+            <span class="field-label">Aire acondicionado</span>
+            <div class="chip-group" id="ac-group">
+              <button type="button" class="chip" data-name="ac" data-value="Splits">Splits</button>
+              <button type="button" class="chip" data-name="ac" data-value="Conductos">Conductos</button>
+              <button type="button" class="chip" data-name="ac" data-value="No tiene">No tiene</button>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <span class="field-label">Calefacción / Radiadores</span>
+            <div class="chip-group" id="radiadores-group">
+              <button type="button" class="chip" data-name="radiadores" data-value="Gas">Gas</button>
+              <button type="button" class="chip" data-name="radiadores" data-value="Eléctricos">Eléctricos</button>
+              <button type="button" class="chip" data-name="radiadores" data-value="Suelo radiante">Suelo radiante</button>
+              <button type="button" class="chip" data-name="radiadores" data-value="No tiene">No tiene</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Paredes</span>
+          <div class="check-group">
+            <label class="check-item"><input type="checkbox" name="paredes" value="Lisas"><span class="box"></span>Lisas</label>
+            <label class="check-item"><input type="checkbox" name="paredes" value="Gotelé"><span class="box"></span>Gotelé</label>
+            <label class="check-item"><input type="checkbox" name="paredes" value="Papel pintado"><span class="box"></span>Papel pintado</label>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         6. EDIFICIO, ENTORNO Y ESTADO
+         ========================================================== -->
+    <section class="section" data-section="6">
+      <header class="section-header">
+        <div class="section-num">6</div>
+        <span class="section-title">Edificio, entorno y estado</span>
+        <span class="section-meta" id="meta-6"></span>
+        <span class="section-chevron"></span>
+      </header>
+      <div class="section-body">
+
+        <div class="fieldset">
+          <p class="fieldset-title">Edificio / finca</p>
+          <div class="field">
+            <span class="field-label">Ascensor</span>
+            <div class="chip-group" id="ascensor-group">
+              <button type="button" class="chip" data-name="ascensor" data-value="Sí">Sí</button>
+              <button type="button" class="chip" data-name="ascensor" data-value="No">No</button>
+              <button type="button" class="chip" data-name="ascensor" data-value="A cota cero">A cota cero</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Zonas comunes</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="zonas" value="Piscina"><span class="box"></span>Piscina</label>
+              <label class="check-item"><input type="checkbox" name="zonas" value="Jardines"><span class="box"></span>Jardines</label>
+              <label class="check-item"><input type="checkbox" name="zonas" value="Club social"><span class="box"></span>Club social</label>
+              <label class="check-item"><input type="checkbox" name="zonas" value="Padel/Tenis"><span class="box"></span>Pádel/Tenis</label>
+              <label class="check-item"><input type="checkbox" name="zonas" value="Zona infantil"><span class="box"></span>Zona infantil</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Conserjería / vigilancia</span>
+            <div class="chip-group" id="conserjeria-group">
+              <button type="button" class="chip" data-name="conserjeria" data-value="Sí">Sí</button>
+              <button type="button" class="chip" data-name="conserjeria" data-value="No">No</button>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <span class="field-label">Fachada</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="fachada" value="Ladrillo caravista"><span class="box"></span>Ladrillo caravista</label>
+              <label class="check-item"><input type="checkbox" name="fachada" value="Monocapa"><span class="box"></span>Monocapa</label>
+              <label class="check-item"><input type="checkbox" name="fachada" value="Pintada"><span class="box"></span>Pintada</label>
+              <label class="check-item"><input type="checkbox" name="fachada" value="Piedra"><span class="box"></span>Piedra</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="fieldset">
+          <p class="fieldset-title">Estado y entorno</p>
+          <div class="field">
+            <span class="field-label">Estado de conservación</span>
+            <div class="chip-group" id="estado-group">
+              <button type="button" class="chip" data-name="estado" data-value="Para entrar">Para entrar</button>
+              <button type="button" class="chip" data-name="estado" data-value="Buen estado">Buen estado</button>
+              <button type="button" class="chip" data-name="estado" data-value="A reformar">A reformar</button>
+              <button type="button" class="chip" data-name="estado" data-value="A estrenar">A estrenar</button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Orientación</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="orientacion" value="Norte"><span class="box"></span>Norte</label>
+              <label class="check-item"><input type="checkbox" name="orientacion" value="Sur"><span class="box"></span>Sur</label>
+              <label class="check-item"><input type="checkbox" name="orientacion" value="Este"><span class="box"></span>Este</label>
+              <label class="check-item"><input type="checkbox" name="orientacion" value="Oeste"><span class="box"></span>Oeste</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Vistas</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="vistas" value="Mar"><span class="box"></span>Al mar</label>
+              <label class="check-item"><input type="checkbox" name="vistas" value="Montaña"><span class="box"></span>A la montaña</label>
+              <label class="check-item"><input type="checkbox" name="vistas" value="Despejadas"><span class="box"></span>Despejadas</label>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <span class="field-label">Servicios a 5 min</span>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" name="servicios" value="Metro/Bus"><span class="box"></span>Metro/Bus</label>
+              <label class="check-item"><input type="checkbox" name="servicios" value="Supermercado"><span class="box"></span>Supermercado</label>
+              <label class="check-item"><input type="checkbox" name="servicios" value="Colegios"><span class="box"></span>Colegios</label>
+              <label class="check-item"><input type="checkbox" name="servicios" value="Centro médico"><span class="box"></span>Centro médico</label>
+              <label class="check-item"><input type="checkbox" name="servicios" value="Parques"><span class="box"></span>Parques</label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         7. OBSERVACIONES
+         ========================================================== -->
+    <section class="section" data-section="7">
+      <header class="section-header">
+        <div class="section-num">7</div>
+        <span class="section-title">Observaciones del agente</span>
+        <span class="section-meta" id="meta-7"></span>
+        <span class="section-chevron"></span>
+      </header>
+      <div class="section-body">
+        <div class="field">
+          <label class="field-label" for="observaciones">Notas internas (no publicables)</label>
+          <textarea id="observaciones" name="observaciones" rows="4" placeholder="Impresiones de la visita, motivación del vendedor, plazos, particularidades…"></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label" for="observaciones_publicas">Descripción pública (para portales)</label>
+          <textarea id="observaciones_publicas" name="observaciones_publicas" rows="4" placeholder="Descripción comercial que se podrá publicar tras la captación…"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================
+         8. RGPD Y FIRMAS
+         ========================================================== -->
+    <section class="section" data-section="8">
+      <header class="section-header">
+        <div class="section-num">8</div>
+        <span class="section-title">RGPD y firmas</span>
+        <span class="section-meta" id="meta-8"></span>
+        <span class="section-chevron"></span>
+      </header>
+      <div class="section-body">
+
+        <div class="rgpd-block">
+          <p>De conformidad con el RGPD y la LOPDGDD, los datos personales recogidos en este documento serán tratados por <strong>PRODEINMO 99 CONSULTORES S.L.</strong> con la finalidad de gestionar la intermediación inmobiliaria solicitada. Puede ejercer sus derechos de acceso, rectificación, supresión y otros dirigiendo un escrito a nuestra oficina.</p>
+        </div>
+
+        <label class="check-item" style="margin-bottom:12px">
+          <input type="checkbox" id="rgpd_aceptado" name="rgpd_aceptado">
+          <span class="box"></span>
+          He informado al propietario y ha aceptado la política de protección de datos.
+        </label>
+
+        <div id="firmasContainer"></div>
+      </div>
+    </section>
+
+  </form>
+</main>
+
+<!-- ACTION BAR -->
+<div class="actionbar">
+  <div class="actionbar-inner">
+    <button type="button" class="btn btn-secondary" id="btnClear">🗑 Borrar todo</button>
+    <button type="button" class="btn btn-primary" id="btnSend">✉ Enviar por correo</button>
+  </div>
+</div>
+
+<!-- MODAL: previsualización de email -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Previsualización del correo</h3>
+      <button type="button" class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <p><strong>Asunto:</strong> <span id="prevSubject"></span></p>
+      <p><strong>Para:</strong> <input type="email" id="prevTo" placeholder="julia@inmobiliariapalanca.com" style="width:100%"></p>
+      <p><strong>Cuerpo:</strong></p>
+      <pre id="prevBody"></pre>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-ghost" data-close>Cancelar</button>
+      <button type="button" class="btn btn-primary" id="btnOpenMail">Abrir cliente de correo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: confirmación de borrado -->
+<div class="modal-overlay" id="clearModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h3>¿Borrar toda la ficha?</h3>
+      <button type="button" class="modal-close" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <p>Esta acción no se puede deshacer. Se perderán todos los datos guardados en este dispositivo.</p>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-ghost" data-close>Cancelar</button>
+      <button type="button" class="btn btn-primary" id="btnClearConfirm" style="background:var(--danger)">Sí, borrar todo</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SCRIPTS -->
+<script src="js/agents.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

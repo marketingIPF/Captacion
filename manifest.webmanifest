@@ -1,0 +1,15 @@
+{
+  "name": "Captación · RK Palanca",
+  "short_name": "Captación",
+  "description": "Ficha de captación de inmuebles para agentes RK Palanca Fontestad",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "lang": "es-ES",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
