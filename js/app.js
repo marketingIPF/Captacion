@@ -271,74 +271,86 @@ function setupSignaturePad(canvas) {
   const key = canvas.dataset.firma;
   const box = canvas.parentElement;
   const ctx = canvas.getContext("2d");
+  let dpr = window.devicePixelRatio || 1;
 
-  // tamaño físico responsive
-  function resize() {
-    const r = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = r.width * dpr;
-    canvas.height = r.height * dpr;
-    ctx.scale(dpr, dpr);
+  function applyContextStyles() {
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = "#111";
+  }
 
-    // restaurar imagen previa
-    if (state.firmas[key]) {
+  function resize() {
+    const r = canvas.getBoundingClientRect();
+    if (r.width === 0) return;
+    // Guardar contenido actual antes de redimensionar
+    const prev = canvas.toDataURL("image/png");
+    const had = box.classList.contains("signed");
+
+    canvas.width = Math.round(r.width * dpr);
+    canvas.height = Math.round(r.height * dpr);
+    // resetTransform + scale para no acumular
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    applyContextStyles();
+
+    // Restaurar imagen previa (de la firma actual o del state)
+    const src = had ? prev : state.firmas[key];
+    if (src) {
       const img = new Image();
-      img.onload = () => { ctx.drawImage(img, 0, 0, r.width, r.height); box.classList.add("signed"); };
-      img.src = state.firmas[key];
-    } else {
-      box.classList.remove("signed");
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, r.width, r.height);
+        box.classList.add("signed");
+      };
+      img.src = src;
     }
   }
   resize();
   window.addEventListener("resize", resize);
 
   let drawing = false;
-  let lastX = 0, lastY = 0;
 
   function pos(e) {
     const r = canvas.getBoundingClientRect();
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-    const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
-    return { x, y };
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
 
   function start(e) {
-    e.preventDefault();
+    if (e.button !== undefined && e.button !== 0) return; // sólo botón izquierdo
     drawing = true;
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
     const { x, y } = pos(e);
-    lastX = x; lastY = y;
     ctx.beginPath();
     ctx.moveTo(x, y);
+    // Un punto para click sin arrastre
+    ctx.lineTo(x + 0.01, y + 0.01);
+    ctx.stroke();
+    e.preventDefault();
   }
   function move(e) {
     if (!drawing) return;
-    e.preventDefault();
     const { x, y } = pos(e);
     ctx.lineTo(x, y);
     ctx.stroke();
-    lastX = x; lastY = y;
+    e.preventDefault();
   }
   function end(e) {
     if (!drawing) return;
     drawing = false;
+    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
     box.classList.add("signed");
-    // guardar como dataURL (PNG redimensionado para no inflar el localStorage)
     state.firmas[key] = canvas.toDataURL("image/png");
     saveState();
   }
 
-  canvas.addEventListener("mousedown", start);
-  canvas.addEventListener("mousemove", move);
-  canvas.addEventListener("mouseup", end);
-  canvas.addEventListener("mouseleave", end);
-  canvas.addEventListener("touchstart", start, { passive: false });
-  canvas.addEventListener("touchmove", move, { passive: false });
-  canvas.addEventListener("touchend", end);
-  canvas.addEventListener("touchcancel", end);
+  // Pointer events: cubre ratón, dedo y stylus en navegadores modernos
+  canvas.addEventListener("pointerdown", start);
+  canvas.addEventListener("pointermove", move);
+  canvas.addEventListener("pointerup", end);
+  canvas.addEventListener("pointerleave", end);
+  canvas.addEventListener("pointercancel", end);
+  // Evita que el navegador interprete el gesto como scroll
+  canvas.style.touchAction = "none";
 }
 
 function getCurrentAgent() {
