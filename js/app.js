@@ -68,15 +68,6 @@ function populateAgentes() {
   }
 }
 
-function populatePoblaciones() {
-  const dl = document.getElementById("poblacionesList");
-  for (const p of window.POBLACIONES) {
-    const o = document.createElement("option");
-    o.value = p;
-    dl.appendChild(o);
-  }
-}
-
 function populateTiposChips() {
   const wrap = document.getElementById("tipo-group");
   for (const t of window.TIPOS_INMUEBLE) {
@@ -472,7 +463,6 @@ function generateEmail() {
   push(`  Nº / Pl. / Pta : ${state.fields.numero || "-"} / ${state.fields.planta || "-"} / ${state.fields.puerta || "-"}`);
   push(`  Población : ${state.fields.poblacion || "-"}`);
   push(`  C.P.      : ${state.fields.cp || "-"}`);
-  push(`  Municipio : ${state.fields.municipio || "-"}`);
   push(`  Provincia : ${state.fields.provincia || "-"}`);
   push(`  Suelo     : ${state.chips.suelo || "-"}`);
   push(`  Cert. energético : ${state.chips.cee || "-"}`);
@@ -608,7 +598,7 @@ function buildApiPayload() {
     Puerta: state.fields.puerta || "",
     Planta: int(state.fields.planta),
     Poblacion: state.fields.poblacion || "",
-    Municipio: state.fields.municipio || state.fields.poblacion || "",
+    Municipio: state.fields.poblacion || "",
     Provincia: state.fields.provincia || "Valencia",
     CP: int(state.fields.cp),
     // Refs y textos
@@ -744,7 +734,6 @@ if ("serviceWorker" in navigator) {
 // ---------- INIT ----------
 function init() {
   populateAgentes();
-  populatePoblaciones();
   populateTiposChips();
 
   // fecha por defecto = hoy si está vacía
