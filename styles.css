@@ -26,7 +26,9 @@
 }
 
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 html, body { margin: 0; padding: 0; }
+button, a, label, .chip, .section-header, .check-item { touch-action: manipulation; }
 
 body {
   font-family: var(--font);
@@ -163,9 +165,11 @@ body {
   padding: 16px 18px;
   cursor: pointer;
   user-select: none;
-  transition: background 0.15s;
+  transition: background-color 0.08s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.section-header:hover { background: var(--gray-1); }
+.section-header:active { background: var(--gray-2); }
 .section-num {
   width: 26px;
   height: 26px;
@@ -317,8 +321,13 @@ input.with-suffix-wrap, .input-suffix {
   color: var(--gray-5);
   cursor: pointer;
   user-select: none;
-  transition: all 0.12s;
+  transition: background-color 0.08s, border-color 0.08s, color 0.08s;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.chip:active {
+  background: var(--gray-2);
+  transform: scale(0.97);
 }
 .chip:hover { border-color: var(--gray-4); }
 .chip[aria-pressed="true"] {
@@ -343,9 +352,10 @@ input.with-suffix-wrap, .input-suffix {
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   padding: 6px 0;
 }
-.check-item input { display: none; }
+.check-item:active .box { background: var(--gray-2); }
 .check-item .box {
   width: 20px;
   height: 20px;
@@ -355,7 +365,7 @@ input.with-suffix-wrap, .input-suffix {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.12s;
+  transition: background-color 0.08s, border-color 0.08s;
   background: var(--white);
 }
 .check-item.radio .box { border-radius: 50%; }
@@ -563,13 +573,15 @@ input.with-suffix-wrap, .input-suffix {
   border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
-  transition: all 0.12s;
+  transition: background-color 0.08s, border-color 0.08s, color 0.08s, transform 0.06s;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
+.btn:active { transform: scale(0.97); }
 .btn-primary {
   background: var(--orange);
   color: var(--white);
