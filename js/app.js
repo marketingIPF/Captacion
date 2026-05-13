@@ -3,6 +3,7 @@
    ========================================================================== */
 
 const STORAGE_KEY = "rkp_captacion_v1";
+const HISTORY_KEY = "rkp_captacion_history";
 const DEFAULT_EMAIL_TO = "julia@inmobiliariapalanca.com";
 
 // ---------- ESTADO ----------
@@ -10,8 +11,7 @@ let state = loadState() || {
   propietarios: [{}],
   fields: {},
   chips: {},
-  checks: {},
-  firmas: {}     // { agente: dataURL, propietario_1: dataURL, propietario_2: dataURL }
+  checks: {}
 };
 
 function loadState() {
@@ -52,6 +52,179 @@ function showStatus(kind) {
   } else if (kind === "error") {
     el.querySelector(".label").textContent = "Error";
   }
+}
+
+// ---------- HISTORIAL ----------
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+function saveHistory(arr) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); }
+  catch (e) { console.error("No se pudo guardar historial:", e); }
+}
+function archiveSnapshot(status) {
+  // No archivar si el formulario está vacío
+  if (isStateEmpty(state)) return null;
+  const hist = loadHistory();
+  const a = getCurrentAgent();
+  const item = {
+    id: "f_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+    status,                       // 'draft' | 'sent'
+    ts: Date.now(),
+    label: buildSnapshotLabel(),
+    agenteName: a ? a.name : "",
+    data: JSON.parse(JSON.stringify(state))
+  };
+  hist.unshift(item);
+  // Limitar a 50 entradas para no inflar localStorage
+  if (hist.length > 50) hist.length = 50;
+  saveHistory(hist);
+  updateHistoryBadge();
+  return item;
+}
+function buildSnapshotLabel() {
+  const tipo = state.chips.tipo || "Inmueble";
+  const pob = state.fields.poblacion || "";
+  const ref = state.fields.ref || "";
+  const propietario = (state.propietarios[0] || {}).nombre || "";
+  const parts = [tipo];
+  if (pob) parts.push(pob);
+  if (ref) parts.push(ref);
+  if (propietario) parts.push(propietario);
+  return parts.join(" · ");
+}
+function isStateEmpty(s) {
+  const f = s.fields || {};
+  const hasFields = Object.keys(f).some(k => k !== "_lastTo" && k !== "fecha" && k !== "provincia" && f[k]);
+  const hasChips = Object.keys(s.chips || {}).length > 0;
+  const hasChecks = Object.values(s.checks || {}).some(arr => Array.isArray(arr) && arr.length);
+  const hasProp = (s.propietarios || []).some(p => p && Object.values(p).some(v => v));
+  return !(hasFields || hasChips || hasChecks || hasProp);
+}
+function resetActiveState() {
+  state = { propietarios: [{}], fields: { fecha: hoy(), provincia: "Valencia" }, chips: {}, checks: {} };
+  saveState();
+  // Reset UI
+  document.getElementById("captacionForm").reset();
+  document.querySelectorAll(".chip[aria-pressed='true']").forEach(c => c.setAttribute("aria-pressed", "false"));
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.getElementById("chaletBlock").style.display = "none";
+  document.getElementById("agente").value = "";
+  document.getElementById("provincia").value = "Valencia";
+  document.getElementById("fecha").value = state.fields.fecha;
+  renderPropietarios();
+  updateSectionMeta();
+}
+function updateHistoryBadge() {
+  const hist = loadHistory();
+  const drafts = hist.filter(h => h.status === "draft").length;
+  const badge = document.getElementById("historyBadge");
+  if (!badge) return;
+  if (drafts > 0) { badge.hidden = false; badge.textContent = drafts; }
+  else { badge.hidden = true; }
+}
+function formatDateTime(ts) {
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function renderHistory(activeTab) {
+  const list = document.getElementById("historyList");
+  const empty = document.getElementById("historyEmpty");
+  const all = loadHistory();
+  const drafts = all.filter(h => h.status === "draft");
+  const sent = all.filter(h => h.status === "sent");
+  document.getElementById("countDraft").textContent = drafts.length;
+  document.getElementById("countSent").textContent = sent.length;
+
+  const items = activeTab === "sent" ? sent : drafts;
+  list.innerHTML = "";
+  if (items.length === 0) {
+    empty.style.display = "block";
+    return;
+  }
+  empty.style.display = "none";
+
+  for (const it of items) {
+    const row = document.createElement("div");
+    row.className = "history-item";
+    row.innerHTML = `
+      <div class="info">
+        <p class="label">${escHtml(it.label || "(sin datos)")}</p>
+        <p class="meta">${formatDateTime(it.ts)}${it.agenteName ? " · " + escHtml(it.agenteName) : ""}</p>
+      </div>
+      <div class="actions">
+        <button type="button" class="icon-btn" data-load="${it.id}">Cargar</button>
+        <button type="button" class="icon-btn danger" data-del="${it.id}">Eliminar</button>
+      </div>
+    `;
+    list.appendChild(row);
+  }
+  list.querySelectorAll("[data-load]").forEach(b => b.addEventListener("click", () => loadFromHistory(b.dataset.load)));
+  list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteFromHistory(b.dataset.del)));
+}
+
+function escHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function loadFromHistory(id) {
+  const hist = loadHistory();
+  const item = hist.find(h => h.id === id);
+  if (!item) return;
+  const proceed = () => {
+    state = JSON.parse(JSON.stringify(item.data));
+    state.propietarios = state.propietarios && state.propietarios.length ? state.propietarios : [{}];
+    saveState();
+    // Reset UI y restaurar
+    document.getElementById("captacionForm").reset();
+    document.querySelectorAll(".chip[aria-pressed='true']").forEach(c => c.setAttribute("aria-pressed", "false"));
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    renderPropietarios();
+    restoreForm();
+    updateSectionMeta();
+    closeModal("historyModal");
+    toast("Ficha cargada", "success");
+  };
+  if (!isStateEmpty(state)) {
+    askConfirm(
+      "¿Descartar la ficha actual?",
+      "Vas a sustituirla por la ficha guardada. Si quieres conservarla, guarda primero como borrador.",
+      proceed
+    );
+  } else proceed();
+}
+function deleteFromHistory(id) {
+  askConfirm(
+    "¿Eliminar esta ficha del historial?",
+    "Esta acción no se puede deshacer.",
+    () => {
+      const hist = loadHistory().filter(h => h.id !== id);
+      saveHistory(hist);
+      const activeTab = document.querySelector(".history-tabs .tab.active").dataset.tab;
+      renderHistory(activeTab);
+      updateHistoryBadge();
+      toast("Eliminada", "success");
+    }
+  );
+}
+
+// Confirmación genérica
+function askConfirm(title, text, onYes) {
+  document.getElementById("confirmTitle").textContent = title;
+  document.getElementById("confirmText").textContent = text;
+  const btn = document.getElementById("btnConfirmYes");
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.addEventListener("click", () => {
+    closeModal("confirmModal");
+    onYes();
+  });
+  openModal("confirmModal");
 }
 
 // ---------- POBLAR LISTAS ----------
@@ -116,7 +289,8 @@ function handleSpecialChips(name, value) {
   }
   if (name === "tipo") {
     const isChalet = /chalet|adosado|pareado|casa/i.test(value || "");
-    document.getElementById("chaletBlock").style.display = isChalet ? "" : "none";
+    const cb = document.getElementById("chaletBlock");
+    if (cb) cb.style.display = isChalet ? "" : "none";
   }
 }
 
@@ -134,13 +308,6 @@ function bindTextField(el) {
 // ---------- CHECKBOXES MULTIPLES ----------
 function bindCheckGroup() {
   document.querySelectorAll('input[type="checkbox"][name]').forEach(cb => {
-    if (cb.id === "rgpd_aceptado") {
-      cb.addEventListener("change", () => {
-        state.fields.rgpd_aceptado = cb.checked;
-        saveState();
-      });
-      return;
-    }
     cb.addEventListener("change", () => {
       const name = cb.name;
       state.checks[name] = state.checks[name] || [];
@@ -208,7 +375,6 @@ function renderPropietarios() {
       state.propietarios.splice(idx, 1);
       saveState();
       renderPropietarios();
-      renderFirmas();
       updateSectionMeta();
     });
   });
@@ -221,53 +387,10 @@ document.getElementById("addPropietario").addEventListener("click", () => {
   state.propietarios.push({});
   saveState();
   renderPropietarios();
-  renderFirmas();
 });
 
-// ---------- FIRMAS (canvas) ----------
-function renderFirmas() {
-  const wrap = document.getElementById("firmasContainer");
-  wrap.innerHTML = "";
 
-  const sigs = [];
-  state.propietarios.forEach((p, i) => {
-    const key = `propietario_${i + 1}`;
-    sigs.push({
-      key,
-      label: `Firma ${state.propietarios.length === 1 ? "del propietario" : "del propietario " + (i + 1)}`,
-      name: p.nombre || ""
-    });
-  });
-  sigs.push({ key: "agente", label: "Firma del agente captador", name: getCurrentAgent()?.name || "" });
-
-  for (const s of sigs) {
-    const div = document.createElement("div");
-    div.className = "firma-wrap";
-    div.innerHTML = `
-      <div class="head">
-        <h4>${s.label}${s.name ? " · " + s.name : ""}</h4>
-        <button type="button" class="btn-link" data-clear-firma="${s.key}">Borrar firma</button>
-      </div>
-      <div class="firma-canvas-box ${state.firmas[s.key] ? "signed" : ""}">
-        <canvas data-firma="${s.key}"></canvas>
-        <div class="placeholder">Firma aquí con el dedo</div>
-      </div>
-    `;
-    wrap.appendChild(div);
-  }
-
-  wrap.querySelectorAll("canvas[data-firma]").forEach(setupSignaturePad);
-  wrap.querySelectorAll("[data-clear-firma]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.clearFirma;
-      delete state.firmas[key];
-      saveState();
-      renderFirmas();
-    });
-  });
-}
-
-function setupSignaturePad(canvas) {
+function setupSignaturePad_DEPRECATED(canvas) {
   const key = canvas.dataset.firma;
   const box = canvas.parentElement;
   const ctx = canvas.getContext("2d");
@@ -425,13 +548,8 @@ function restoreForm() {
 
 // ---------- VALIDACIÓN ----------
 function validate() {
-  const errors = [];
-  if (!state.fields.agente) errors.push("Selecciona el agente captador.");
-  if (!state.chips.operacion) errors.push("Selecciona el tipo de operación (Venta o Alquiler).");
-  if (!state.chips.tipo) errors.push("Selecciona el tipo de inmueble.");
-  const movil = (state.propietarios[0] || {}).movil;
-  if (!movil) errors.push("Indica el teléfono móvil del propietario principal.");
-  return errors;
+  // Ya no hay campos obligatorios; siempre permitir envío.
+  return [];
 }
 
 // ---------- GENERACIÓN EMAIL ----------
@@ -544,18 +662,6 @@ function generateEmail() {
     }
     push("");
   }
-
-  push("◆ RGPD Y FIRMAS");
-  push(`  Política de datos informada : ${state.fields.rgpd_aceptado ? "Sí" : "No"}`);
-  state.propietarios.forEach((p, i) => {
-    const key = `propietario_${i + 1}`;
-    push(`  Firma propietario ${i + 1} : ${state.firmas[key] ? "✓ Capturada" : "✗ Pendiente"}`);
-  });
-  push(`  Firma agente : ${state.firmas.agente ? "✓ Capturada" : "✗ Pendiente"}`);
-  push("");
-  push("  Nota: las firmas se han capturado en pantalla y quedan");
-  push("  registradas en el dispositivo del agente.");
-  push("");
 
   // ---- Bloque API ----
   push("══════════════════════════════════════════");
@@ -694,23 +800,43 @@ document.getElementById("btnOpenMail").addEventListener("click", () => {
   }
   window.location.href = url;
   closeModal("previewModal");
+  // Archivar en historial como 'enviado' y limpiar el formulario activo
+  archiveSnapshot("sent");
+  resetActiveState();
+  setTimeout(() => toast("Ficha archivada en Enviados", "success"), 600);
+});
+
+// ---------- BORRADOR ----------
+document.getElementById("btnSaveDraft").addEventListener("click", () => {
+  if (isStateEmpty(state)) {
+    toast("No hay datos para guardar", "error");
+    return;
+  }
+  archiveSnapshot("draft");
+  resetActiveState();
+  toast("Borrador guardado — puedes empezar otra ficha", "success");
+});
+
+// ---------- HISTORIAL ----------
+document.getElementById("btnHistory").addEventListener("click", () => {
+  document.querySelectorAll(".history-tabs .tab").forEach(t => t.classList.toggle("active", t.dataset.tab === "draft"));
+  renderHistory("draft");
+  openModal("historyModal");
+});
+document.querySelectorAll(".history-tabs .tab").forEach(t => {
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".history-tabs .tab").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    renderHistory(t.dataset.tab);
+  });
 });
 
 // ---------- BORRAR ----------
 document.getElementById("btnClear").addEventListener("click", () => openModal("clearModal"));
 document.getElementById("btnClearConfirm").addEventListener("click", () => {
-  localStorage.removeItem(STORAGE_KEY);
-  state = { propietarios: [{}], fields: {}, chips: {}, checks: {}, firmas: {} };
-  saveState();
-  // Reset UI
-  document.getElementById("captacionForm").reset();
-  document.querySelectorAll(".chip[aria-pressed='true']").forEach(c => c.setAttribute("aria-pressed", "false"));
-  renderPropietarios();
-  renderFirmas();
-  updateSectionMeta();
+  resetActiveState();
   closeModal("clearModal");
   toast("Ficha borrada", "success");
-  document.getElementById("chaletBlock").style.display = "none";
 });
 
 // ---------- AGENTE ----------
@@ -718,7 +844,6 @@ document.getElementById("agente").addEventListener("change", (e) => {
   state.fields.agente = e.target.value;
   saveState();
   updateSectionMeta();
-  renderFirmas(); // actualiza el nombre bajo la firma del agente
 });
 
 // ---------- PWA INSTALL ----------
@@ -759,9 +884,9 @@ function init() {
   bindCheckGroup();
 
   renderPropietarios();
-  renderFirmas();
   restoreForm();
   updateSectionMeta();
+  updateHistoryBadge();
   showStatus("saved");
 }
 

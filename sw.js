@@ -1,6 +1,6 @@
 // Service worker simple — cachea los archivos estáticos
 // para que la app funcione sin conexión.
-const CACHE = "rkp-captacion-v6";
+const CACHE = "rkp-captacion-v8";
 const ASSETS = [
   "./",
   "./index.html",

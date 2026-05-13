@@ -60,6 +60,47 @@ body {
   flex-shrink: 0;
   display: block;
 }
+.header-titles { flex: 1; min-width: 0; }
+@media (max-width: 540px) {
+  .header-titles .subtitle { display: none; }
+  .app-header .logo { height: 28px; max-width: 120px; }
+}
+
+.header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s;
+}
+.header-btn:hover { background: rgba(255,255,255,0.16); }
+.header-btn .badge {
+  background: var(--orange);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.4;
+}
+@media (max-width: 540px) {
+  .header-btn span:not(.badge) { display: none; }
+  .header-btn { padding: 8px; }
+}
 .app-header .title {
   font-size: 11px;
   font-weight: 600;
@@ -75,7 +116,6 @@ body {
   margin: 0;
 }
 .app-header .status {
-  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -84,6 +124,9 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--gray-4);
+}
+@media (max-width: 540px) {
+  .status .label { display: none; }
 }
 .status .dot {
   width: 8px;
@@ -530,7 +573,7 @@ input.with-suffix-wrap, .input-suffix {
 .btn-primary {
   background: var(--orange);
   color: var(--white);
-  flex: 2;
+  flex: 1.5;
 }
 .btn-primary:hover { background: #b86116; }
 .btn-primary:active { transform: scale(0.98); }
@@ -540,7 +583,12 @@ input.with-suffix-wrap, .input-suffix {
   border: 1px solid var(--gray-3);
   flex: 1;
 }
-.btn-secondary:hover { border-color: var(--danger); color: var(--danger); }
+.btn-secondary:hover { border-color: var(--orange); color: var(--orange); }
+.btn-secondary#btnClear:hover { border-color: var(--danger); color: var(--danger); }
+@media (max-width: 380px) {
+  .actionbar .btn { padding: 12px 10px; font-size: 12px; }
+  .actionbar .btn-label { font-size: 12px; }
+}
 .btn-ghost {
   background: transparent;
   color: var(--gray-5);
@@ -624,6 +672,106 @@ input.with-suffix-wrap, .input-suffix {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+}
+
+/* HISTORY MODAL */
+.history-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--gray-2);
+  padding: 0 20px;
+}
+.history-tabs .tab {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gray-4);
+  padding: 14px 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: -1px;
+}
+.history-tabs .tab.active {
+  color: var(--black);
+  border-bottom-color: var(--orange);
+}
+.tab-count {
+  background: var(--gray-2);
+  color: var(--gray-5);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 10px;
+}
+.history-tabs .tab.active .tab-count {
+  background: var(--orange-soft);
+  color: var(--orange);
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--gray-2);
+}
+.history-item:last-child { border-bottom: none; }
+.history-item .info {
+  flex: 1;
+  min-width: 0;
+}
+.history-item .label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.history-item .meta {
+  font-size: 11px;
+  color: var(--gray-4);
+  font-weight: 500;
+}
+.history-item .actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.history-item .icon-btn {
+  background: none;
+  border: 1px solid var(--gray-3);
+  border-radius: 6px;
+  color: var(--gray-5);
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.12s;
+}
+.history-item .icon-btn:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+.history-item .icon-btn.danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.history-empty {
+  text-align: center;
+  color: var(--gray-4);
+  font-size: 13px;
+  padding: 30px 0;
+  margin: 0;
+  font-style: italic;
 }
 
 /* TOAST */
