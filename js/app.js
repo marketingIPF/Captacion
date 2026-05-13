@@ -68,19 +68,26 @@ function saveHistory(arr) {
 function archiveSnapshot(status) {
   // No archivar si el formulario está vacío
   if (isStateEmpty(state)) return null;
-  const hist = loadHistory();
+  let hist = loadHistory();
+  // Si esta ficha proviene de un borrador del historial, eliminar la entrada
+  // original para evitar duplicados (se sustituirá por la versión actual).
+  if (state._sourceDraftId) {
+    hist = hist.filter(h => h.id !== state._sourceDraftId);
+  }
   const a = getCurrentAgent();
+  const data = JSON.parse(JSON.stringify(state));
+  delete data._sourceDraftId; // no persistir el vínculo dentro del snapshot
   const item = {
     id: "f_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
     status,                       // 'draft' | 'sent'
     ts: Date.now(),
     label: buildSnapshotLabel(),
     agenteName: a ? a.name : "",
-    data: JSON.parse(JSON.stringify(state))
+    data: data
   };
   hist.unshift(item);
-  // Limitar a 50 entradas para no inflar localStorage
-  if (hist.length > 50) hist.length = 50;
+  // Limitar a 100 entradas (las más antiguas se descartan)
+  if (hist.length > 100) hist.length = 100;
   saveHistory(hist);
   updateHistoryBadge();
   return item;
@@ -179,6 +186,7 @@ function loadFromHistory(id) {
   const proceed = () => {
     state = JSON.parse(JSON.stringify(item.data));
     state.propietarios = state.propietarios && state.propietarios.length ? state.propietarios : [{}];
+    state._sourceDraftId = item.id; // recuerda de qué entrada del historial proviene
     saveState();
     // Reset UI y restaurar
     document.getElementById("captacionForm").reset();

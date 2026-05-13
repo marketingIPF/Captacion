@@ -773,6 +773,16 @@ input.with-suffix-wrap, .input-suffix {
   margin: 0;
   font-style: italic;
 }
+.history-note {
+  font-size: 11px;
+  color: var(--gray-4);
+  line-height: 1.55;
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  background: var(--gray-1);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--gray-3);
+}
 
 /* TOAST */
 .toast {
